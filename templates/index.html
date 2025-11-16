@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Auto Troubleshoot AI</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:#1e293b;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem}.header{text-align:center;margin-bottom:2rem}.header h1{font-size:2rem;color:#f97316}.car-info{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem}.car-info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}.car-info input{width:100%;padding:0.75rem;border-radius:0.5rem;border:none;background:#475569;color:#fff;font-size:1rem}.car-info input::placeholder{color:#94a3b8}.car-info button{width:100%;padding:0.75rem;background:#10b981;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}.car-info button:disabled{background:#6b7280;cursor:not-allowed}.chat{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem;min-height:400px;max-height:500px;overflow-y:auto}.msg{margin:1rem 0;padding:1rem;border-radius:0.5rem}.msg.user{background:#f97316;margin-left:auto;max-width:80%}.msg.assistant{background:#475569;max-width:80%}.input-box{width:100%;max-width:800px;display:flex;gap:0.5rem}#inp{flex:1;padding:1rem;border-radius:0.5rem;border:none;background:#334155;color:#fff;font-size:1rem}#btn{padding:1rem 2rem;background:#f97316;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}#btn:disabled{background:#6b7280;cursor:not-allowed}.welcome{text-align:center;color:#94a3b8;padding:2rem}.welcome h2{color:#f97316;margin-bottom:1rem}.car-badge{display:inline-block;background:#10b981;color:#fff;padding:0.5rem 1rem;border-radius:0.5rem;margin-bottom:1rem;font-weight:600}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:#1e293b;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem}.header{text-align:center;margin-bottom:2rem}.header h1{font-size:2rem;color:#f97316}.car-info{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem}.car-info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}.car-info input,.car-info select{width:100%;padding:0.75rem;border-radius:0.5rem;border:none;background:#475569;color:#fff;font-size:1rem}.car-info select{cursor:pointer}.car-info input::placeholder{color:#94a3b8}.car-info button{width:100%;padding:0.75rem;background:#10b981;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}.car-info button:disabled{background:#6b7280;cursor:not-allowed}.chat{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem;min-height:400px;max-height:500px;overflow-y:auto}.msg{margin:1rem 0;padding:1rem;border-radius:0.5rem}.msg.user{background:#f97316;margin-left:auto;max-width:80%}.msg.assistant{background:#475569;max-width:80%}.input-box{width:100%;max-width:800px;display:flex;gap:0.5rem}#inp{flex:1;padding:1rem;border-radius:0.5rem;border:none;background:#334155;color:#fff;font-size:1rem}#btn{padding:1rem 2rem;background:#f97316;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}#btn:disabled{background:#6b7280;cursor:not-allowed}.welcome{text-align:center;color:#94a3b8;padding:2rem}.welcome h2{color:#f97316;margin-bottom:1rem}.car-badge{display:inline-block;background:#10b981;color:#fff;padding:0.5rem 1rem;border-radius:0.5rem;margin-bottom:1rem;font-weight:600}
     </style>
 </head>
 <body>
@@ -16,9 +16,13 @@
     <div class="car-info" id="carInfoSection">
         <h3 style="margin-bottom:1rem;color:#f97316">Enter Your Vehicle Info</h3>
         <div class="car-info-grid">
-            <input type="number" id="year" placeholder="Year (e.g., 2015)" min="1900" max="2025">
-            <input type="text" id="make" placeholder="Make (e.g., Honda)">
-            <input type="text" id="model" placeholder="Model (e.g., Civic)">
+            <input type="number" id="year" placeholder="Year" min="1990" max="2025">
+            <select id="make">
+                <option value="">Select Make</option>
+            </select>
+            <select id="model">
+                <option value="">Select Model</option>
+            </select>
         </div>
         <button id="setCarBtn">Start Diagnosis</button>
     </div>
@@ -36,13 +40,57 @@
     </div>
     
     <script>
+        const carData = {
+            "Acura": ["ILX", "Integra", "MDX", "NSX", "RDX", "TLX", "TSX", "ZDX"],
+            "Alfa Romeo": ["4C", "Giulia", "Stelvio", "Tonale"],
+            "Audi": ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "e-tron", "R8", "RS3", "RS5", "RS7", "S3", "S4", "S5", "TT"],
+            "BMW": ["2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4", "i4", "iX", "M2", "M3", "M4", "M5", "M8"],
+            "Buick": ["Enclave", "Encore", "Envision", "LaCrosse", "Regal"],
+            "Cadillac": ["CT4", "CT5", "Escalade", "Lyriq", "XT4", "XT5", "XT6"],
+            "Chevrolet": ["Blazer", "Bolt", "Camaro", "Colorado", "Corvette", "Equinox", "Malibu", "Silverado 1500", "Silverado 2500", "Suburban", "Tahoe", "Traverse", "Trax"],
+            "Chrysler": ["300", "Pacifica", "Voyager"],
+            "Dodge": ["Challenger", "Charger", "Durango", "Grand Caravan", "Hornet", "Ram 1500", "Ram 2500"],
+            "Ferrari": ["296 GTB", "812", "F8", "Portofino", "Roma", "SF90"],
+            "Fiat": ["500", "500X"],
+            "Ford": ["Bronco", "Edge", "Escape", "Expedition", "Explorer", "F-150", "F-250", "F-350", "Maverick", "Mustang", "Ranger", "Transit"],
+            "Genesis": ["G70", "G80", "G90", "GV60", "GV70", "GV80"],
+            "GMC": ["Acadia", "Canyon", "Sierra 1500", "Sierra 2500", "Terrain", "Yukon"],
+            "Honda": ["Accord", "Civic", "CR-V", "HR-V", "Insight", "Odyssey", "Passport", "Pilot", "Ridgeline"],
+            "Hyundai": ["Accent", "Elantra", "Ioniq 5", "Ioniq 6", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson", "Veloster", "Venue"],
+            "Infiniti": ["Q50", "Q60", "QX50", "QX55", "QX60", "QX80"],
+            "Jaguar": ["E-Pace", "F-Pace", "F-Type", "I-Pace", "XE", "XF"],
+            "Jeep": ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Grand Wagoneer", "Renegade", "Wagoneer", "Wrangler"],
+            "Kia": ["Forte", "K5", "Niro", "Seltos", "Sorento", "Soul", "Sportage", "Stinger", "Telluride"],
+            "Lamborghini": ["Aventador", "Huracan", "Urus"],
+            "Land Rover": ["Defender", "Discovery", "Range Rover", "Range Rover Evoque", "Range Rover Sport", "Range Rover Velar"],
+            "Lexus": ["ES", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "UX"],
+            "Lincoln": ["Aviator", "Corsair", "Nautilus", "Navigator"],
+            "Maserati": ["Ghibli", "Grecale", "Levante", "MC20", "Quattroporte"],
+            "Mazda": ["CX-3", "CX-30", "CX-5", "CX-50", "CX-9", "CX-90", "Mazda3", "Mazda6", "MX-5 Miata"],
+            "McLaren": ["720S", "Artura", "GT"],
+            "Mercedes-Benz": ["A-Class", "C-Class", "CLA", "CLS", "E-Class", "EQB", "EQE", "EQS", "G-Class", "GLA", "GLB", "GLC", "GLE", "GLS", "S-Class", "SL"],
+            "Mini": ["Clubman", "Convertible", "Countryman", "Hardtop"],
+            "Mitsubishi": ["Eclipse Cross", "Mirage", "Outlander", "Outlander Sport"],
+            "Nissan": ["Altima", "Armada", "Ariya", "Frontier", "Kicks", "Leaf", "Maxima", "Murano", "Pathfinder", "Rogue", "Sentra", "Titan", "Versa", "Z"],
+            "Polestar": ["2"],
+            "Porsche": ["718", "911", "Cayenne", "Macan", "Panamera", "Taycan"],
+            "Ram": ["1500", "2500", "3500", "ProMaster"],
+            "Rivian": ["R1S", "R1T"],
+            "Rolls-Royce": ["Cullinan", "Ghost", "Phantom"],
+            "Subaru": ["Ascent", "BRZ", "Crosstrek", "Forester", "Impreza", "Legacy", "Outback", "WRX"],
+            "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
+            "Toyota": ["4Runner", "Avalon", "bZ4X", "Camry", "Corolla", "Corolla Cross", "Crown", "GR86", "GR Supra", "Highlander", "Prius", "RAV4", "Sequoia", "Sienna", "Tacoma", "Tundra", "Venza"],
+            "Volkswagen": ["Arteon", "Atlas", "Golf GTI", "ID.4", "Jetta", "Passat", "Taos", "Tiguan"],
+            "Volvo": ["C40", "S60", "S90", "V60", "V90", "XC40", "XC60", "XC90"]
+        };
+        
+        const makeSelect = document.getElementById('make');
+        const modelSelect = document.getElementById('model');
+        const yearInput = document.getElementById('year');
+        const setCarBtn = document.getElementById('setCarBtn');
         const carInfoSection = document.getElementById('carInfoSection');
         const chatSection = document.getElementById('chat');
         const inputBox = document.getElementById('inputBox');
-        const yearInput = document.getElementById('year');
-        const makeInput = document.getElementById('make');
-        const modelInput = document.getElementById('model');
-        const setCarBtn = document.getElementById('setCarBtn');
         const c = document.getElementById('chat');
         const i = document.getElementById('inp');
         const b = document.getElementById('btn');
@@ -50,10 +98,34 @@
         let m = [];
         let carInfo = null;
         
+        // Populate makes
+        Object.keys(carData).sort().forEach(make => {
+            const option = document.createElement('option');
+            option.value = make;
+            option.textContent = make;
+            makeSelect.appendChild(option);
+        });
+        
+        // Update models when make changes
+        makeSelect.onchange = function() {
+            modelSelect.innerHTML = '<option value="">Select Model</option>';
+            if (this.value) {
+                carData[this.value].forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+                modelSelect.disabled = false;
+            } else {
+                modelSelect.disabled = true;
+            }
+        };
+        
         setCarBtn.onclick = function() {
             const year = yearInput.value.trim();
-            const make = makeInput.value.trim();
-            const model = modelInput.value.trim();
+            const make = makeSelect.value;
+            const model = modelSelect.value;
             
             if (!year || !make || !model) {
                 alert('Please fill in all vehicle information');
