@@ -62,15 +62,13 @@
             
             carInfo = {year, make, model};
             
-            // Hide car info section, show chat
             carInfoSection.style.display = 'none';
             chatSection.style.display = 'block';
             inputBox.style.display = 'flex';
             
-            // Add car badge to chat
             const badge = document.createElement('div');
             badge.className = 'car-badge';
-            badge.textContent = `${year} ${make} ${model}`;
+            badge.textContent = year + ' ' + make + ' ' + model;
             c.insertBefore(badge, c.firstChild);
             
             i.focus();
@@ -93,10 +91,9 @@
             i.value = '';
             b.disabled = true;
             
-            // Add car info to first message
             let messageContent = t;
             if (m.length === 0 && carInfo) {
-                messageContent = `I have a ${carInfo.year} ${carInfo.make} ${carInfo.model}. ${t}`;
+                messageContent = 'I have a ' + carInfo.year + ' ' + carInfo.make + ' ' + carInfo.model + '. ' + t;
             }
             
             m.push({role: 'user', content: messageContent});
@@ -124,7 +121,7 @@
         }
         
         b.onclick = send;
-        i.onkeypress = e => {
+        i.onkeypress = function(e) {
             if (e.key === 'Enter') send();
         };
     </script>
