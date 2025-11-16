@@ -1,1 +1,132 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Auto AI</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:#1e293b;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem}.header{text-align:center;margin-bottom:2rem}.header h1{font-size:2rem;color:#f97316}.chat{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem;min-height:400px;max-height:500px;overflow-y:auto}.msg{margin:1rem 0;padding:1rem;border-radius:0.5rem}.msg.user{background:#f97316;margin-left:auto;max-width:80%}.msg.assistant{background:#475569;max-width:80%}.input-box{width:100%;max-width:800px;display:flex;gap:0.5rem}#inp{flex:1;padding:1rem;border-radius:0.5rem;border:none;background:#334155;color:#fff;font-size:1rem}#btn{padding:1rem 2rem;background:#f97316;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}</style></head><body><div class="header"><h1>🚗 Auto Troubleshoot AI</h1></div><div class="chat" id="chat"><div style="text-align:center;color:#94a3b8;padding:2rem"><h2>Welcome!</h2><p>Describe your car problem</p></div></div><div class="input-box"><input type="text" id="inp" placeholder="Describe your problem..."><button id="btn">Send</button></div><script>const c=document.getElementById('chat'),i=document.getElementById('inp'),b=document.getElementById('btn');let m=[];function add(r,t){const d=document.createElement('div');d.className='msg '+r;d.textContent=t;c.innerHTML='';m.forEach(msg=>c.innerHTML+=`<div class="msg ${msg.role}">${msg.content}</div>`);c.scrollTop=c.scrollHeight}async function send(){const t=i.value.trim();if(!t)return;i.value='';b.disabled=true;m.push({role:'user',content:t});add('user',t);try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:m})});const d=await r.json();if(d.success){m.push({role:'assistant',content:d.message});c.innerHTML='';m.forEach(msg=>c.innerHTML+=`<div class="msg ${msg.role}">${msg.content}</div>`)}}catch(e){alert('Error')}b.disabled=false;i.focus()}b.onclick=send;i.onkeypress=e=>{if(e.key==='Enter')send()}</script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Auto Troubleshoot AI</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:#1e293b;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem}.header{text-align:center;margin-bottom:2rem}.header h1{font-size:2rem;color:#f97316}.car-info{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem}.car-info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}.car-info input{width:100%;padding:0.75rem;border-radius:0.5rem;border:none;background:#475569;color:#fff;font-size:1rem}.car-info input::placeholder{color:#94a3b8}.car-info button{width:100%;padding:0.75rem;background:#10b981;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}.car-info button:disabled{background:#6b7280;cursor:not-allowed}.chat{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem;min-height:400px;max-height:500px;overflow-y:auto}.msg{margin:1rem 0;padding:1rem;border-radius:0.5rem}.msg.user{background:#f97316;margin-left:auto;max-width:80%}.msg.assistant{background:#475569;max-width:80%}.input-box{width:100%;max-width:800px;display:flex;gap:0.5rem}#inp{flex:1;padding:1rem;border-radius:0.5rem;border:none;background:#334155;color:#fff;font-size:1rem}#btn{padding:1rem 2rem;background:#f97316;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}#btn:disabled{background:#6b7280;cursor:not-allowed}.welcome{text-align:center;color:#94a3b8;padding:2rem}.welcome h2{color:#f97316;margin-bottom:1rem}.car-badge{display:inline-block;background:#10b981;color:#fff;padding:0.5rem 1rem;border-radius:0.5rem;margin-bottom:1rem;font-weight:600}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚗 Auto Troubleshoot AI</h1>
+    </div>
+    
+    <div class="car-info" id="carInfoSection">
+        <h3 style="margin-bottom:1rem;color:#f97316">Enter Your Vehicle Info</h3>
+        <div class="car-info-grid">
+            <input type="number" id="year" placeholder="Year (e.g., 2015)" min="1900" max="2025">
+            <input type="text" id="make" placeholder="Make (e.g., Honda)">
+            <input type="text" id="model" placeholder="Model (e.g., Civic)">
+        </div>
+        <button id="setCarBtn">Start Diagnosis</button>
+    </div>
+    
+    <div class="chat" id="chat" style="display:none">
+        <div class="welcome">
+            <h2>Welcome!</h2>
+            <p>Describe your car problem</p>
+        </div>
+    </div>
+    
+    <div class="input-box" id="inputBox" style="display:none">
+        <input type="text" id="inp" placeholder="Describe your problem...">
+        <button id="btn">Send</button>
+    </div>
+    
+    <script>
+        const carInfoSection = document.getElementById('carInfoSection');
+        const chatSection = document.getElementById('chat');
+        const inputBox = document.getElementById('inputBox');
+        const yearInput = document.getElementById('year');
+        const makeInput = document.getElementById('make');
+        const modelInput = document.getElementById('model');
+        const setCarBtn = document.getElementById('setCarBtn');
+        const c = document.getElementById('chat');
+        const i = document.getElementById('inp');
+        const b = document.getElementById('btn');
+        
+        let m = [];
+        let carInfo = null;
+        
+        setCarBtn.onclick = function() {
+            const year = yearInput.value.trim();
+            const make = makeInput.value.trim();
+            const model = modelInput.value.trim();
+            
+            if (!year || !make || !model) {
+                alert('Please fill in all vehicle information');
+                return;
+            }
+            
+            carInfo = {year, make, model};
+            
+            // Hide car info section, show chat
+            carInfoSection.style.display = 'none';
+            chatSection.style.display = 'block';
+            inputBox.style.display = 'flex';
+            
+            // Add car badge to chat
+            const badge = document.createElement('div');
+            badge.className = 'car-badge';
+            badge.textContent = `${year} ${make} ${model}`;
+            c.insertBefore(badge, c.firstChild);
+            
+            i.focus();
+        };
+        
+        function add(r, t) {
+            const d = document.createElement('div');
+            d.className = 'msg ' + r;
+            d.textContent = t;
+            const w = c.querySelector('.welcome');
+            if (w) w.remove();
+            c.appendChild(d);
+            c.scrollTop = c.scrollHeight;
+        }
+        
+        async function send() {
+            const t = i.value.trim();
+            if (!t) return;
+            
+            i.value = '';
+            b.disabled = true;
+            
+            // Add car info to first message
+            let messageContent = t;
+            if (m.length === 0 && carInfo) {
+                messageContent = `I have a ${carInfo.year} ${carInfo.make} ${carInfo.model}. ${t}`;
+            }
+            
+            m.push({role: 'user', content: messageContent});
+            add('user', t);
+            
+            try {
+                const r = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({messages: m})
+                });
+                const d = await r.json();
+                if (d.success) {
+                    m.push({role: 'assistant', content: d.message});
+                    add('assistant', d.message);
+                } else {
+                    add('assistant', 'Error: ' + (d.error || 'Unknown error'));
+                }
+            } catch (e) {
+                add('assistant', 'Connection error');
+            }
+            
+            b.disabled = false;
+            i.focus();
+        }
+        
+        b.onclick = send;
+        i.onkeypress = e => {
+            if (e.key === 'Enter') send();
+        };
+    </script>
+</body>
+</html>
