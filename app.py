@@ -41,10 +41,8 @@ def chat():
             search_query = f"{car_info.get('year', '')} {car_info.get('make', '')} {car_info.get('model', '')} {last_message}"
             web_results = search_web(search_query)
         
-        # Build clean message history for Groq
         groq_messages = []
         
-        # Add all user/assistant messages
         for msg in user_messages:
             if msg.get('role') in ['user', 'assistant']:
                 groq_messages.append({
@@ -52,7 +50,6 @@ def chat():
                     'content': msg['content']
                 })
         
-        # Prepend web results to first user message if found
         if web_results and groq_messages:
             resources_text = "Resources found:\n"
             for idx, r in enumerate(web_results, 1):
@@ -61,7 +58,7 @@ def chat():
         
         payload = {
             'messages': groq_messages,
-            'model': 'mixtral-8x7b-32768',
+            'model': 'llama3-8b-8192',
             'temperature': 0.7,
             'max_tokens': 1024
         }
@@ -75,8 +72,6 @@ def chat():
             json=payload,
             timeout=30
         )
-        
-        print(f"Status: {response.status_code}, Response: {response.text[:200]}")
         
         if response.status_code != 200:
             return jsonify({'success': False, 'error': f'API Error: {response.text}'}), 500
