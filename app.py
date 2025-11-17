@@ -56,7 +56,7 @@ def chat():
         response = requests.post(
             'https://api.groq.com/openai/v1/chat/completions',
             headers={'Authorization': f'Bearer {GROQ_API_KEY}', 'Content-Type': 'application/json'},
-            json={'model': 'llama-3.1-70b-versatile', 'messages': messages, 'max_tokens': 2000},
+            json={'model': 'llama3-70b-8192', 'messages': messages, 'max_tokens': 2000},
             timeout=30
         )
         
