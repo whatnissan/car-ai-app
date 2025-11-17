@@ -38,21 +38,33 @@ def chat():
         if any(term in last_message for term in search_terms):
             search_query = f"{car_info.get('year', '')} {car_info.get('make', '')} {car_info.get('model', '')} {last_message}"
             web_results = search_web(search_query)
-        system_content = "You are an automotive troubleshooting assistant."
+        
+        prompt = messages[-1]['content']
         if web_results:
-            system_content += "\n\nResources found:\n"
+            prompt = "Found these resources:\n"
             for idx, r in enumerate(web_results, 1):
-                system_content += f"\n{idx}. {r['title']}\n   URL: {r['url']}\n"
-        gemini_contents = []
-        for msg in messages:
-            if msg['role'] != 'system':
-                role = "user" if msg['role'] == 'user' else "model"
-                gemini_contents.append({"role": role, "parts": [{"text": msg['content']}]})
-        if gemini_contents and web_results:
-            gemini_contents[0]['parts'][0]['text'] = system_content + "\n\nUser: " + gemini_contents[0]['parts'][0]['text']
-        response = requests.post(f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}', headers={'Content-Type': 'application/json'}, json={'contents': gemini_contents}, timeout=30)
+                prompt += f"{idx}. {r['title']} - {r['url']}\n"
+            prompt += f"\nUser question: {messages[-1]['content']}"
+        
+        response = requests.post(
+            f'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}',
+            headers={'Content-Type': 'application/json'},
+            json={
+                'contents': [{
+                    'parts': [{'text': prompt}]
+                }],
+                'generationConfig': {
+                    'temperature': 0.7,
+                    'maxOutputTokens': 2000
+                }
+            },
+            timeout=30
+        )
+        
         response.raise_for_status()
-        ai_message = response.json()['candidates'][0]['content']['parts'][0]['text']
+        result = response.json()
+        ai_message = result['candidates'][0]['content']['parts'][0]['text']
+        
         return jsonify({'success': True, 'message': ai_message, 'web_results': web_results})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
