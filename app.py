@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 
 def search_web(query):
     try:
@@ -17,14 +17,9 @@ def search_web(query):
             title_elem = result.find('a', class_='result__a')
             snippet_elem = result.find('a', class_='result__snippet')
             if title_elem:
-                results.append({
-                    'title': title_elem.get_text(strip=True),
-                    'url': title_elem.get('href', ''),
-                    'snippet': snippet_elem.get_text(strip=True) if snippet_elem else ''
-                })
+                results.append({'title': title_elem.get_text(strip=True), 'url': title_elem.get('href', ''), 'snippet': snippet_elem.get_text(strip=True) if snippet_elem else ''})
         return results
-    except Exception as e:
-        print(f"Search error: {e}")
+    except:
         return []
 
 @app.route('/')
@@ -37,47 +32,28 @@ def chat():
         data = request.json
         messages = data.get('messages', [])
         car_info = data.get('car_info', {})
-        
         last_message = messages[-1]['content'].lower()
-        search_terms = ['wiring diagram', 'wiring', 'diagram', 'schematic', 'manual', 'fuse', 'serpentine']
-        
+        search_terms = ['wiring diagram', 'wiring', 'diagram', 'schematic', 'manual', 'fuse']
         web_results = None
         if any(term in last_message for term in search_terms):
-            year = car_info.get('year', '')
-            make = car_info.get('make', '')
-            model = car_info.get('model', '')
-            search_query = f"{year} {make} {model} {last_message}"
+            search_query = f"{car_info.get('year', '')} {car_info.get('make', '')} {car_info.get('model', '')} {last_message}"
             web_results = search_web(search_query)
-        
-        system_content = "You are an automotive troubleshooting assistant. Help diagnose car problems."
-        
+        system_content = "You are an automotive troubleshooting assistant."
         if web_results:
-            system_content += "\n\nI found these resources:\n"
-            for idx, result in enumerate(web_results, 1):
-                system_content += f"\n{idx}. {result['title']}\n   URL: {result['url']}\n"
-            system_content += "\nReference these in your response."
-        
-        if len(messages) == 1:
-            messages.insert(0, {'role': 'system', 'content': system_content})
-        else:
-            messages[0] = {'role': 'system', 'content': system_content}
-        
-        response = requests.post(
-            'https://api.openai.com/v1/chat/completions',
-            headers={'Authorization': f'Bearer {OPENAI_API_KEY}', 'Content-Type': 'application/json'},
-            json={'model': 'gpt-3.5-turbo', 'messages': messages, 'max_tokens': 1500},
-            timeout=30
-        )
-        
+            system_content += "\n\nResources found:\n"
+            for idx, r in enumerate(web_results, 1):
+                system_content += f"\n{idx}. {r['title']}\n   URL: {r['url']}\n"
+        gemini_contents = []
+        for msg in messages:
+            if msg['role'] != 'system':
+                role = "user" if msg['role'] == 'user' else "model"
+                gemini_contents.append({"role": role, "parts": [{"text": msg['content']}]})
+        if gemini_contents and web_results:
+            gemini_contents[0]['parts'][0]['text'] = system_content + "\n\nUser: " + gemini_contents[0]['parts'][0]['text']
+        response = requests.post(f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}', headers={'Content-Type': 'application/json'}, json={'contents': gemini_contents}, timeout=30)
         response.raise_for_status()
-        ai_message = response.json()['choices'][0]['message']['content']
-        
-        return jsonify({
-            'success': True,
-            'message': ai_message,
-            'web_results': web_results
-        })
-        
+        ai_message = response.json()['candidates'][0]['content']['parts'][0]['text']
+        return jsonify({'success': True, 'message': ai_message, 'web_results': web_results})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
