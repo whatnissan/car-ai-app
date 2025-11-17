@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 
 def search_web(query):
     try:
@@ -39,31 +39,26 @@ def chat():
             search_query = f"{car_info.get('year', '')} {car_info.get('make', '')} {car_info.get('model', '')} {last_message}"
             web_results = search_web(search_query)
         
-        prompt = messages[-1]['content']
+        system_content = "You are an automotive troubleshooting assistant. Help diagnose car problems."
         if web_results:
-            prompt = "Found these resources:\n"
+            system_content += "\n\nResources found:\n"
             for idx, r in enumerate(web_results, 1):
-                prompt += f"{idx}. {r['title']} - {r['url']}\n"
-            prompt += f"\nUser question: {messages[-1]['content']}"
+                system_content += f"{idx}. {r['title']} - {r['url']}\n"
+        
+        if len(messages) == 1:
+            messages.insert(0, {'role': 'system', 'content': system_content})
+        else:
+            messages[0] = {'role': 'system', 'content': system_content}
         
         response = requests.post(
-            f'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}',
-            headers={'Content-Type': 'application/json'},
-            json={
-                'contents': [{
-                    'parts': [{'text': prompt}]
-                }],
-                'generationConfig': {
-                    'temperature': 0.7,
-                    'maxOutputTokens': 2000
-                }
-            },
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={'Authorization': f'Bearer {GROQ_API_KEY}', 'Content-Type': 'application/json'},
+            json={'model': 'llama-3.1-70b-versatile', 'messages': messages, 'max_tokens': 2000, 'temperature': 0.7},
             timeout=30
         )
         
         response.raise_for_status()
-        result = response.json()
-        ai_message = result['candidates'][0]['content']['parts'][0]['text']
+        ai_message = response.json()['choices'][0]['message']['content']
         
         return jsonify({'success': True, 'message': ai_message, 'web_results': web_results})
     except Exception as e:
