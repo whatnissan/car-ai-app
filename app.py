@@ -57,9 +57,22 @@ def chat():
                 prompt_addition += f"{idx}. {r['title']} - {r['url']}\n"
             prompt_addition += "\n"
         
-        # Add diagram request if asking for diagrams
         if any(term in last_message.lower() for term in ['diagram', 'wiring']):
-            prompt_addition += "IMPORTANT: Create a Mermaid diagram. Use this syntax:\n```mermaid\ngraph LR\n[diagram code here]\n```\nPut the mermaid code in triple backticks with 'mermaid' after the first backticks.\n\n"
+            prompt_addition += '''IMPORTANT: Create a Mermaid flowchart diagram. Use EXACTLY this format:
+```mermaid
+graph LR
+    A[Component 1] --> B[Component 2]
+    B --> C[Component 3]
+```
+
+Rules:
+- Use graph LR for left-to-right flow
+- Each node must be: Letter[Text in brackets]
+- Connections use -->
+- Keep it simple with 5-10 nodes max
+- No special characters in node text
+
+'''
         
         if groq_messages:
             groq_messages[0]['content'] = prompt_addition + groq_messages[0]['content']
