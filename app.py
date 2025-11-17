@@ -33,39 +33,62 @@ def chat():
         user_messages = data.get('messages', [])
         car_info = data.get('car_info', {})
         
-        last_message = user_messages[-1]['content'].lower()
+        last_message = user_messages[-1]['content'] if user_messages else ''
         search_terms = ['wiring diagram', 'wiring', 'diagram', 'schematic', 'manual', 'fuse']
         
         web_results = None
-        if any(term in last_message for term in search_terms):
+        if any(term in last_message.lower() for term in search_terms):
             search_query = f"{car_info.get('year', '')} {car_info.get('make', '')} {car_info.get('model', '')} {last_message}"
             web_results = search_web(search_query)
         
-        system_content = "You are an automotive troubleshooting assistant. Help diagnose car problems."
-        if web_results:
-            system_content += "\n\nFound resources:\n"
-            for idx, r in enumerate(web_results, 1):
-                system_content += f"{idx}. {r['title']} - {r['url']}\n"
-            system_content += "\nProvide these links to the user."
+        # Build clean message history for Groq
+        groq_messages = []
         
-        messages = [{'role': 'system', 'content': system_content}]
+        # Add all user/assistant messages
         for msg in user_messages:
-            if msg['role'] != 'system':
-                messages.append(msg)
+            if msg.get('role') in ['user', 'assistant']:
+                groq_messages.append({
+                    'role': msg['role'],
+                    'content': msg['content']
+                })
+        
+        # Prepend web results to first user message if found
+        if web_results and groq_messages:
+            resources_text = "Resources found:\n"
+            for idx, r in enumerate(web_results, 1):
+                resources_text += f"{idx}. {r['title']} - {r['url']}\n"
+            groq_messages[0]['content'] = resources_text + "\n" + groq_messages[0]['content']
+        
+        payload = {
+            'messages': groq_messages,
+            'model': 'mixtral-8x7b-32768',
+            'temperature': 0.7,
+            'max_tokens': 1024
+        }
         
         response = requests.post(
             'https://api.groq.com/openai/v1/chat/completions',
-            headers={'Authorization': f'Bearer {GROQ_API_KEY}', 'Content-Type': 'application/json'},
-            json={'model': 'llama3-70b-8192', 'messages': messages, 'max_tokens': 2000},
+            headers={
+                'Authorization': f'Bearer {GROQ_API_KEY}',
+                'Content-Type': 'application/json'
+            },
+            json=payload,
             timeout=30
         )
         
-        response.raise_for_status()
-        ai_message = response.json()['choices'][0]['message']['content']
+        print(f"Status: {response.status_code}, Response: {response.text[:200]}")
+        
+        if response.status_code != 200:
+            return jsonify({'success': False, 'error': f'API Error: {response.text}'}), 500
+        
+        result = response.json()
+        ai_message = result['choices'][0]['message']['content']
         
         return jsonify({'success': True, 'message': ai_message, 'web_results': web_results})
+        
     except Exception as e:
-        print(f'Error: {e}')
+        import traceback
+        print(traceback.format_exc())
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
