@@ -30,10 +30,12 @@ def index():
 def chat():
     try:
         data = request.json
-        messages = data.get('messages', [])
+        user_messages = data.get('messages', [])
         car_info = data.get('car_info', {})
-        last_message = messages[-1]['content'].lower()
+        
+        last_message = user_messages[-1]['content'].lower()
         search_terms = ['wiring diagram', 'wiring', 'diagram', 'schematic', 'manual', 'fuse']
+        
         web_results = None
         if any(term in last_message for term in search_terms):
             search_query = f"{car_info.get('year', '')} {car_info.get('make', '')} {car_info.get('model', '')} {last_message}"
@@ -41,19 +43,20 @@ def chat():
         
         system_content = "You are an automotive troubleshooting assistant. Help diagnose car problems."
         if web_results:
-            system_content += "\n\nResources found:\n"
+            system_content += "\n\nFound resources:\n"
             for idx, r in enumerate(web_results, 1):
                 system_content += f"{idx}. {r['title']} - {r['url']}\n"
+            system_content += "\nProvide these links to the user."
         
-        if len(messages) == 1:
-            messages.insert(0, {'role': 'system', 'content': system_content})
-        else:
-            messages[0] = {'role': 'system', 'content': system_content}
+        messages = [{'role': 'system', 'content': system_content}]
+        for msg in user_messages:
+            if msg['role'] != 'system':
+                messages.append(msg)
         
         response = requests.post(
             'https://api.groq.com/openai/v1/chat/completions',
             headers={'Authorization': f'Bearer {GROQ_API_KEY}', 'Content-Type': 'application/json'},
-            json={'model': 'llama-3.1-70b-versatile', 'messages': messages, 'max_tokens': 2000, 'temperature': 0.7},
+            json={'model': 'llama-3.1-70b-versatile', 'messages': messages, 'max_tokens': 2000},
             timeout=30
         )
         
@@ -62,6 +65,7 @@ def chat():
         
         return jsonify({'success': True, 'message': ai_message, 'web_results': web_results})
     except Exception as e:
+        print(f'Error: {e}')
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
