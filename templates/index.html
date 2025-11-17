@@ -4,89 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Auto Troubleshoot AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:#1e293b;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem}.header{text-align:center;margin-bottom:2rem}.header h1{font-size:2rem;color:#f97316}.car-info{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem}.car-info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}.car-info input,.car-info select{width:100%;padding:0.75rem;border-radius:0.5rem;border:none;background:#475569;color:#fff;font-size:1rem}.car-info select{cursor:pointer}.car-info input::placeholder{color:#94a3b8}.car-info button{width:100%;padding:0.75rem;background:#10b981;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}.car-info button:disabled{background:#6b7280;cursor:not-allowed}.chat{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem;min-height:400px;max-height:500px;overflow-y:auto}.msg{margin:1rem 0;padding:1rem;border-radius:0.5rem}.msg.user{background:#f97316;margin-left:auto;max-width:80%}.msg.assistant{background:#475569;max-width:80%}.input-box{width:100%;max-width:800px;display:flex;gap:0.5rem}#inp{flex:1;padding:1rem;border-radius:0.5rem;border:none;background:#334155;color:#fff;font-size:1rem}#btn{padding:1rem 2rem;background:#f97316;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}#btn:disabled{background:#6b7280;cursor:not-allowed}.welcome{text-align:center;color:#94a3b8;padding:2rem}.welcome h2{color:#f97316;margin-bottom:1rem}.car-badge{display:inline-block;background:#10b981;color:#fff;padding:0.5rem 1rem;border-radius:0.5rem;margin-bottom:1rem;font-weight:600}
+        *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:#1e293b;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem}.header{text-align:center;margin-bottom:2rem}.header h1{font-size:2rem;color:#f97316}.header p{color:#94a3b8;font-size:0.9rem;margin-top:0.5rem}.car-info{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem}.car-info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}.car-info input,.car-info select{width:100%;padding:0.75rem;border-radius:0.5rem;border:none;background:#475569;color:#fff;font-size:1rem}.car-info select{cursor:pointer}.car-info button{width:100%;padding:0.75rem;background:#10b981;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}.chat{width:100%;max-width:800px;background:#334155;border-radius:1rem;padding:1.5rem;margin-bottom:1rem;min-height:400px;max-height:500px;overflow-y:auto}.msg{margin:1rem 0;padding:1rem;border-radius:0.5rem}.msg.user{background:#f97316;margin-left:auto;max-width:80%}.msg.assistant{background:#475569;max-width:90%}.mermaid{background:#fff;padding:1rem;border-radius:0.5rem;margin:1rem 0}.input-box{width:100%;max-width:800px;display:flex;gap:0.5rem}#inp{flex:1;padding:1rem;border-radius:0.5rem;border:none;background:#334155;color:#fff;font-size:1rem}#btn{padding:1rem 2rem;background:#f97316;color:#fff;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600}.welcome{text-align:center;color:#94a3b8;padding:2rem}.car-badge{background:#10b981;color:#fff;padding:0.5rem 1rem;border-radius:0.5rem;margin-bottom:1rem;font-weight:600}
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🚗 Auto Troubleshoot AI</h1>
+        <p>🔍 With diagram generation!</p>
     </div>
     
     <div class="car-info" id="carInfoSection">
         <h3 style="margin-bottom:1rem;color:#f97316">Enter Your Vehicle Info</h3>
         <div class="car-info-grid">
             <input type="number" id="year" placeholder="Year" min="1990" max="2025">
-            <select id="make">
-                <option value="">Select Make</option>
-            </select>
-            <select id="model">
-                <option value="">Select Model</option>
-            </select>
+            <select id="make"><option value="">Select Make</option></select>
+            <select id="model"><option value="">Select Model</option></select>
         </div>
         <button id="setCarBtn">Start Diagnosis</button>
     </div>
     
     <div class="chat" id="chat" style="display:none">
-        <div class="welcome">
-            <h2>Welcome!</h2>
-            <p>Describe your car problem</p>
-        </div>
+        <div class="welcome"><h2>Welcome!</h2><p>Ask for wiring diagrams and I'll create visual diagrams!</p></div>
     </div>
     
     <div class="input-box" id="inputBox" style="display:none">
-        <input type="text" id="inp" placeholder="Describe your problem...">
+        <input type="text" id="inp" placeholder="e.g., 'Show me rear window wiring diagram'">
         <button id="btn">Send</button>
     </div>
     
     <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+        
         const carData = {
-            "Acura": ["CL", "CSX", "ILX", "Integra", "Legend", "MDX", "NSX", "RDX", "RL", "RLX", "RSX", "SLX", "TL", "TLX", "TSX", "Vigor", "ZDX"],
-            "Alfa Romeo": ["4C", "Giulia", "Stelvio", "Tonale", "Spider", "GTV"],
-            "Audi": ["A3", "A4", "A4 Allroad", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "e-tron", "R8", "RS3", "RS4", "RS5", "RS6", "RS7", "S3", "S4", "S5", "S6", "S7", "S8", "TT", "TT RS", "allroad"],
-            "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z3", "Z4", "i3", "i4", "i8", "iX", "M2", "M3", "M4", "M5", "M6", "M8", "X3 M", "X4 M", "X5 M", "X6 M"],
-            "Buick": ["Century", "Enclave", "Encore", "Encore GX", "Envision", "LaCrosse", "LeSabre", "Lucerne", "Park Avenue", "Rainier", "Regal", "Rendezvous", "Terraza", "Verano"],
-            "Cadillac": ["ATS", "CT4", "CT5", "CT6", "CTS", "DTS", "Escalade", "Escalade ESV", "Lyriq", "SRX", "STS", "XT4", "XT5", "XT6", "XTS"],
-            "Chevrolet": ["Astro", "Avalanche", "Aveo", "Blazer", "Bolt EUV", "Bolt EV", "Camaro", "Captiva", "Cavalier", "Cobalt", "Colorado", "Corvette", "Cruze", "Equinox", "Express", "HHR", "Impala", "Malibu", "Monte Carlo", "S-10", "Silverado 1500", "Silverado 2500", "Silverado 3500", "Sonic", "Spark", "SS", "SSR", "Suburban", "Tahoe", "Trailblazer", "Traverse", "Trax", "Uplander", "Venture"],
-            "Chrysler": ["200", "300", "300M", "Aspen", "Cirrus", "Concorde", "Crossfire", "LHS", "Pacifica", "PT Cruiser", "Sebring", "Town & Country", "Voyager"],
-            "Dodge": ["Avenger", "Caliber", "Caravan", "Challenger", "Charger", "Dakota", "Dart", "Durango", "Grand Caravan", "Hornet", "Intrepid", "Journey", "Magnum", "Neon", "Nitro", "Ram 1500", "Ram 2500", "Ram 3500", "Stratus", "Viper"],
-            "Ferrari": ["296 GTB", "458", "488", "812", "California", "F12", "F8", "FF", "Portofino", "Roma", "SF90"],
-            "Fiat": ["500", "500L", "500X"],
-            "Ford": ["Bronco", "Bronco Sport", "C-Max", "Crown Victoria", "E-150", "E-250", "E-350", "Edge", "Escape", "Expedition", "Explorer", "F-150", "F-250", "F-350", "F-450", "Fiesta", "Five Hundred", "Flex", "Focus", "Freestar", "Freestyle", "Fusion", "GT", "Maverick", "Mustang", "Mustang Mach-E", "Ranger", "Taurus", "Taurus X", "Thunderbird", "Transit", "Transit Connect", "Windstar"],
-            "Genesis": ["G70", "G80", "G90", "GV60", "GV70", "GV80"],
-            "GMC": ["Acadia", "Canyon", "Envoy", "Jimmy", "Safari", "Savana", "Sierra 1500", "Sierra 2500", "Sierra 3500", "Sonoma", "Terrain", "Yukon", "Yukon XL"],
-            "Honda": ["Accord", "Civic", "Clarity", "CR-V", "CR-Z", "Crosstour", "Del Sol", "Element", "Fit", "HR-V", "Insight", "Odyssey", "Passport", "Pilot", "Prelude", "Ridgeline", "S2000"],
-            "Hyundai": ["Accent", "Azera", "Elantra", "Elantra GT", "Entourage", "Genesis", "Genesis Coupe", "Ioniq", "Ioniq 5", "Ioniq 6", "Kona", "Nexo", "Palisade", "Santa Cruz", "Santa Fe", "Santa Fe Sport", "Sonata", "Tiburon", "Tucson", "Veloster", "Venue", "Veracruz", "XG300", "XG350"],
-            "Infiniti": ["EX", "FX", "G", "G35", "G37", "I", "JX", "M", "Q40", "Q45", "Q50", "Q60", "Q70", "QX", "QX30", "QX4", "QX50", "QX55", "QX56", "QX60", "QX70", "QX80"],
-            "Jaguar": ["E-Pace", "F-Pace", "F-Type", "I-Pace", "S-Type", "X-Type", "XE", "XF", "XJ", "XK"],
-            "Jeep": ["Cherokee", "Commander", "Compass", "Gladiator", "Grand Cherokee", "Grand Cherokee L", "Grand Wagoneer", "Liberty", "Patriot", "Renegade", "Wagoneer", "Wrangler"],
-            "Kia": ["Amanti", "Borrego", "Cadenza", "Forte", "Forte Koup", "K5", "K900", "Niro", "Optima", "Rio", "Rondo", "Sedona", "Seltos", "Sorento", "Soul", "Spectra", "Sportage", "Stinger", "Telluride"],
-            "Lamborghini": ["Aventador", "Gallardo", "Huracan", "Murcielago", "Urus"],
-            "Land Rover": ["Defender", "Discovery", "Discovery Sport", "Freelander", "LR2", "LR3", "LR4", "Range Rover", "Range Rover Evoque", "Range Rover Sport", "Range Rover Velar"],
-            "Lexus": ["CT", "ES", "GS", "GX", "HS", "IS", "LC", "LFA", "LS", "LX", "NX", "RC", "RX", "SC", "UX"],
-            "Lincoln": ["Aviator", "Blackwood", "Continental", "Corsair", "LS", "Mark LT", "MKC", "MKS", "MKT", "MKX", "MKZ", "Nautilus", "Navigator", "Town Car", "Zephyr"],
-            "Maserati": ["Ghibli", "GranTurismo", "Grecale", "Levante", "MC20", "Quattroporte"],
-            "Mazda": ["2", "3", "5", "6", "626", "CX-3", "CX-30", "CX-5", "CX-50", "CX-7", "CX-9", "CX-90", "Mazda3", "Mazda6", "Millenia", "MPV", "MX-5 Miata", "Protege", "RX-8", "Tribute"],
-            "McLaren": ["570S", "600LT", "720S", "765LT", "Artura", "GT"],
-            "Mercedes-Benz": ["A-Class", "B-Class", "C-Class", "CL-Class", "CLA", "CLK", "CLS", "E-Class", "EQB", "EQE", "EQS", "G-Class", "GL-Class", "GLA", "GLB", "GLC", "GLE", "GLK", "GLS", "M-Class", "Metris", "R-Class", "S-Class", "SL", "SLC", "SLK", "Sprinter"],
-            "Mini": ["Clubman", "Convertible", "Countryman", "Coupe", "Hardtop", "Paceman", "Roadster"],
-            "Mitsubishi": ["3000GT", "Eclipse", "Eclipse Cross", "Endeavor", "Galant", "i-MiEV", "Lancer", "Lancer Evolution", "Mirage", "Montero", "Montero Sport", "Outlander", "Outlander Sport", "Raider"],
-            "Nissan": ["350Z", "370Z", "Altima", "Armada", "Ariya", "Cube", "Frontier", "GT-R", "Juke", "Kicks", "Leaf", "Maxima", "Murano", "Pathfinder", "Quest", "Rogue", "Rogue Sport", "Sentra", "Titan", "Versa", "Versa Note", "X-Terra", "Z"],
-            "Polestar": ["1", "2"],
-            "Pontiac": ["Aztek", "Bonneville", "G5", "G6", "G8", "Grand Am", "Grand Prix", "GTO", "Montana", "Solstice", "Sunfire", "Torrent", "Vibe"],
-            "Porsche": ["718 Boxster", "718 Cayman", "911", "918", "Boxster", "Cayenne", "Cayman", "Macan", "Panamera", "Taycan"],
-            "Ram": ["1500", "1500 Classic", "2500", "3500", "Dakota", "ProMaster", "ProMaster City"],
-            "Rivian": ["R1S", "R1T"],
-            "Rolls-Royce": ["Cullinan", "Dawn", "Ghost", "Phantom", "Wraith"],
-            "Saab": ["9-2X", "9-3", "9-4X", "9-5", "9-7X"],
-            "Saturn": ["Astra", "Aura", "Ion", "L-Series", "Outlook", "Relay", "Sky", "Vue"],
-            "Scion": ["FR-S", "iA", "iM", "iQ", "tC", "xA", "xB", "xD"],
-            "Subaru": ["Ascent", "Baja", "BRZ", "Crosstrek", "Forester", "Impreza", "Legacy", "Outback", "SVX", "Tribeca", "WRX", "WRX STI"],
-            "Suzuki": ["Aerio", "Equator", "Forenza", "Grand Vitara", "Kizashi", "Reno", "SX4", "Verona", "Vitara", "XL-7"],
-            "Tesla": ["Model 3", "Model S", "Model X", "Model Y", "Roadster"],
-            "Toyota": ["4Runner", "Avalon", "bZ4X", "C-HR", "Camry", "Celica", "Corolla", "Corolla Cross", "Corolla iM", "Crown", "Echo", "FJ Cruiser", "GR86", "GR Supra", "Highlander", "Land Cruiser", "Matrix", "MR2", "Prius", "Prius c", "Prius Prime", "Prius v", "RAV4", "Sequoia", "Sienna", "Solara", "Tacoma", "Tundra", "Venza", "Yaris", "Yaris iA"],
-            "Volkswagen": ["Arteon", "Atlas", "Atlas Cross Sport", "Beetle", "CC", "Eos", "Golf", "Golf GTI", "Golf R", "ID.4", "Jetta", "Jetta GLI", "Passat", "Phaeton", "Rabbit", "Routan", "Taos", "Tiguan", "Touareg"],
-            "Volvo": ["C30", "C40", "C70", "S40", "S60", "S70", "S80", "S90", "V40", "V50", "V60", "V70", "V90", "XC40", "XC60", "XC70", "XC90"]
+            "Honda": ["Accord", "Civic", "CR-V", "Fit", "HR-V", "Odyssey", "Pilot", "Ridgeline"]
         };
         
         const makeSelect = document.getElementById('make');
@@ -103,7 +55,7 @@
         let m = [];
         let carInfo = null;
         
-        Object.keys(carData).sort().forEach(make => {
+        Object.keys(carData).forEach(make => {
             const option = document.createElement('option');
             option.value = make;
             option.textContent = make;
@@ -119,9 +71,6 @@
                     option.textContent = model;
                     modelSelect.appendChild(option);
                 });
-                modelSelect.disabled = false;
-            } else {
-                modelSelect.disabled = true;
             }
         };
         
@@ -136,7 +85,6 @@
             }
             
             carInfo = {year, make, model};
-            
             carInfoSection.style.display = 'none';
             chatSection.style.display = 'block';
             inputBox.style.display = 'flex';
@@ -145,14 +93,50 @@
             badge.className = 'car-badge';
             badge.textContent = year + ' ' + make + ' ' + model;
             c.insertBefore(badge, c.firstChild);
-            
             i.focus();
         };
+        
+        function renderMermaid(text) {
+            const mermaidRegex = /```mermaid([\s\S]*?)```/g;
+            let match;
+            let lastIndex = 0;
+            const parts = [];
+            
+            while ((match = mermaidRegex.exec(text)) !== null) {
+                if (match.index > lastIndex) {
+                    parts.push({ type: 'text', content: text.substring(lastIndex, match.index) });
+                }
+                parts.push({ type: 'mermaid', content: match[1].trim() });
+                lastIndex = match.index + match[0].length;
+            }
+            
+            if (lastIndex < text.length) {
+                parts.push({ type: 'text', content: text.substring(lastIndex) });
+            }
+            
+            return parts.length > 0 ? parts : [{ type: 'text', content: text }];
+        }
         
         function add(r, t) {
             const d = document.createElement('div');
             d.className = 'msg ' + r;
-            d.textContent = t;
+            
+            const parts = renderMermaid(t);
+            parts.forEach((part, idx) => {
+                if (part.type === 'mermaid') {
+                    const mermaidDiv = document.createElement('div');
+                    mermaidDiv.className = 'mermaid';
+                    mermaidDiv.textContent = part.content;
+                    d.appendChild(mermaidDiv);
+                    setTimeout(() => mermaid.run({ nodes: [mermaidDiv] }), 100);
+                } else {
+                    const textDiv = document.createElement('div');
+                    textDiv.style.whiteSpace = 'pre-wrap';
+                    textDiv.textContent = part.content;
+                    d.appendChild(textDiv);
+                }
+            });
+            
             const w = c.querySelector('.welcome');
             if (w) w.remove();
             c.appendChild(d);
@@ -178,7 +162,7 @@
                 const r = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({messages: m})
+                    body: JSON.stringify({messages: m, car_info: carInfo})
                 });
                 const d = await r.json();
                 if (d.success) {
@@ -196,9 +180,7 @@
         }
         
         b.onclick = send;
-        i.onkeypress = function(e) {
-            if (e.key === 'Enter') send();
-        };
+        i.onkeypress = e => { if (e.key === 'Enter') send(); };
     </script>
 </body>
 </html>

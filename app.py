@@ -50,17 +50,25 @@ def chat():
                     'content': msg['content']
                 })
         
+        prompt_addition = ""
         if web_results and groq_messages:
-            resources_text = "Resources found:\n"
+            prompt_addition = "Resources:\n"
             for idx, r in enumerate(web_results, 1):
-                resources_text += f"{idx}. {r['title']} - {r['url']}\n"
-            groq_messages[0]['content'] = resources_text + "\n" + groq_messages[0]['content']
+                prompt_addition += f"{idx}. {r['title']} - {r['url']}\n"
+            prompt_addition += "\n"
+        
+        # Add diagram request if asking for diagrams
+        if any(term in last_message.lower() for term in ['diagram', 'wiring']):
+            prompt_addition += "IMPORTANT: Create a Mermaid diagram. Use this syntax:\n```mermaid\ngraph LR\n[diagram code here]\n```\nPut the mermaid code in triple backticks with 'mermaid' after the first backticks.\n\n"
+        
+        if groq_messages:
+            groq_messages[0]['content'] = prompt_addition + groq_messages[0]['content']
         
         payload = {
             'messages': groq_messages,
-            'model': 'llama-3.1-8b-instant',
-            'temperature': 0.7,
-            'max_tokens': 1024
+            'model': 'llama-3.3-70b-versatile',
+            'temperature': 0.5,
+            'max_tokens': 2000
         }
         
         response = requests.post(
@@ -74,7 +82,7 @@ def chat():
         )
         
         if response.status_code != 200:
-            return jsonify({'success': False, 'error': f'API Error: {response.text}'}), 500
+            return jsonify({'success': False, 'error': f'Groq API Error: {response.text}'}), 500
         
         result = response.json()
         ai_message = result['choices'][0]['message']['content']
